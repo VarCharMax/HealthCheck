@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using System;
-using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Net.Mime;
+using System.Text.Json;
 
 namespace HealthCheck
 {
@@ -10,7 +10,30 @@ namespace HealthCheck
     {
         public CustomHealthCheckOptions() : base()
         {
+            var jsonSerializationOptions = new JsonSerializerOptions()
+            {
+                WriteIndented = true
+            };
 
+            ResponseWriter = async (c, r) => {
+                c.Response.ContentType = MediaTypeNames.Application.Json;
+                c.Response.StatusCode = StatusCodes.Status200OK;
+
+                var result = JsonSerializer.Serialize(new
+                {
+                    checks = r.Entries.Select(e => new
+                    {
+                        name = e.Key,
+                        response = e.Value.Duration.TotalMilliseconds,
+                        status = e.Value.Status.ToString(),
+                        description = e.Value.Description
+                    }),
+                    totalStatus = r.Status,
+                    totalResponseTime = r.TotalDuration.TotalMilliseconds
+                }, jsonSerializationOptions);
+
+                await c.Response.WriteAsync(result);
+            };
         }
     }
 }
