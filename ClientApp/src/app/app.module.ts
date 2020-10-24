@@ -26,6 +26,7 @@ import { environment } from '../environments/environment';
     ]),
     ServiceWorkerModule.register('ngsw-worker.js', {
       registrationStrategy: 'registerImmediately',
+      enabled: environment.production,
     }),
   ],
   providers: [],

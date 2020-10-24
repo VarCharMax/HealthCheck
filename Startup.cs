@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.StaticFiles;
+
 namespace HealthCheck
 {
     public class Startup
@@ -54,12 +55,20 @@ namespace HealthCheck
             app.UseStaticFiles(new StaticFileOptions() {
                 ContentTypeProvider= provider,
                 OnPrepareResponse = (context) => {
-                    //Disable caching for all static files
-                    context.Context.Response.Headers["Cache-Control"] = Configuration["StaticFiles:Headers:Cache-Control"];
-                    context.Context.Response.Headers["Pragma"] = Configuration["StaticFiles:Headers:Pragma"];
-                    context.Context.Response.Headers["Expires"] = Configuration["StaticFiles:Headers:Expires"];
+                    if (context.File.Name == "isOnline.txt")
+                    {
+                        context.Context.Response.Headers.Add("Cache-Control", "no-cache no-store");
+                        context.Context.Response.Headers.Add("Expires", "-1");
+                    }
+                    else
+                    {
+                        //Disable caching for all static files
+                        context.Context.Response.Headers["Cache-Control"] = Configuration["StaticFiles:Headers:Cache-Control"];
+                        context.Context.Response.Headers["Pragma"] = Configuration["StaticFiles:Headers:Pragma"];
+                        context.Context.Response.Headers["Expires"] = Configuration["StaticFiles:Headers:Expires"];
+                    }
                 }
-            });;
+            });
 
             if (!env.IsDevelopment())
             {
