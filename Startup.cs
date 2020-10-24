@@ -47,25 +47,33 @@ namespace HealthCheck
                 app.UseHsts();
             }
 
+
             app.UseHttpsRedirection();
 
+            // add .webmanifest MIME-type support
             FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
-            provider.Mappings[".manifest"] = "application/manifest+json";
+            provider.Mappings[".webmanifest"] = "application/manifest+json";
 
-            app.UseStaticFiles(new StaticFileOptions() {
-                ContentTypeProvider= provider,
-                OnPrepareResponse = (context) => {
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                ContentTypeProvider = provider,
+                OnPrepareResponse = (context) =>
+                {
                     if (context.File.Name == "isOnline.txt")
                     {
-                        context.Context.Response.Headers.Add("Cache-Control", "no-cache no-store");
+                        // disable caching for these files
+                        context.Context.Response.Headers.Add("Cache-Control", "no-cache, no-store");
                         context.Context.Response.Headers.Add("Expires", "-1");
                     }
                     else
                     {
-                        //Disable caching for all static files
-                        context.Context.Response.Headers["Cache-Control"] = Configuration["StaticFiles:Headers:Cache-Control"];
-                        context.Context.Response.Headers["Pragma"] = Configuration["StaticFiles:Headers:Pragma"];
-                        context.Context.Response.Headers["Expires"] = Configuration["StaticFiles:Headers:Expires"];
+                        // Retrieve cache configuration from appsettings.json
+                        context.Context.Response.Headers["Cache-Control"] =
+                            Configuration["StaticFiles:Headers:Cache-Control"];
+                        context.Context.Response.Headers["Pragma"] =
+                            Configuration["StaticFiles:Headers:Pragma"];
+                        context.Context.Response.Headers["Expires"] =
+                            Configuration["StaticFiles:Headers:Expires"];
                     }
                 }
             });
@@ -91,6 +99,9 @@ namespace HealthCheck
 
             app.UseSpa(spa =>
             {
+                // To learn more about options for serving an Angular SPA from ASP.NET Core,
+                // see https://go.microsoft.com/fwlink/?linkid=864501
+
                 spa.Options.SourcePath = "ClientApp";
 
                 if (env.IsDevelopment())

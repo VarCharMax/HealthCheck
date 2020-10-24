@@ -25,8 +25,7 @@ import { environment } from '../environments/environment';
       { path: 'health-check', component: HealthCheckComponent },
     ]),
     ServiceWorkerModule.register('ngsw-worker.js', {
-      registrationStrategy: 'registerImmediately',
-      enabled: environment.production,
+      registrationStrategy: 'registerImmediately'
     }),
   ],
   providers: [],
